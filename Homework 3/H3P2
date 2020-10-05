@@ -1,7 +1,6 @@
 import numpy as np
 import camb
-from matplotlib import pyplot as plt
-import time
+
 
 
 def get_spectrum(pars,lmax=2000):
@@ -24,32 +23,13 @@ def get_spectrum(pars,lmax=2000):
 
 pars=np.asarray([65,0.02,0.1,0.05,2e-9,0.96])
 
-## Solve for chi^2
-##chi^2 =(x-Am)^T N^-1 (x-Am)
-def matrix_A(x, order):
-    A = np.zeros([len(x), order+1])
-    A[:,0] = 1
-    for i in range(order):
-        A[:,i+1] = x*A[:,i]
-    return A
-    
-
 x = np.array(get_spectrum(pars))
-cmb = x[2:]
+cmb = x[2:1201] #cut out values after 1200 term since wmap is short
+data=np.loadtxt('wmap_tt_spectrum_9yr_v5.txt')
+wmap = data[:,1]
+error = data[:,2]
 
-##Solve for m first
-A = matrix_A(cmb, 6)
-N = np.eye(len(cmb))
-Ninv = np.linalg.inv(N)
-lhs = A.transpose()@(Ninv@A)
-rhs = A.transpose()@(Ninv@cmb)
-m = np.linalg.inv(lhs)@rhs
-d = A@m
-##Solve for chi^2 now 
-B = (cmb - d)
-chisq = B.transpose()@Ninv@B
-print(chisq)
+##Solve for chi^2 now (x-m)^2/error
+chisq = (wmap - cmb)**2/error**2
+print(np.sum(chisq))
 
-plt.plot(cmb, '*')
-plt.plot(d, '.')
-plt.show()
