@@ -104,12 +104,28 @@ Q,R = np.linalg.qr(derivs)
 lhs = Q.transpose()@Ninv@Q@R
 lhs_inv = np.linalg.inv(lhs)
 pars_step = np.sqrt(np.diag(np.abs(lhs_inv))) ## use curvature matrix to make estimate for step size 
-chain, chi_vector = mcmc(pars, data, pars_step, chisq, cov_mat, nstep=10000)
+chain, chi_vector = mcmc(pars, data, pars_step, chisq, cov_mat, nstep=20000)
 error = np.std(chain, axis=0)
 pars_better = np.mean(chain, axis=0)
 parameters = np.mean(chain, axis = 0)
 print("the parameter estimates using mcmc are", parameters)
 print( "error for first chains is",error)
+plt.plot(chain[:,0])
+plt.title('MCMC for H0')
+plt.savefig('H3P5_MCMC.png')
+plt.show()
+
+##covergence test looking only at H0 for computing time
+h = chain[:,0]
+ft = np.fft.fft(h, axis=0)
+ft0 = np.square(ft)
+plt.clf()
+plt.plot(ft0)
+plt.yscale('log')
+plt.xscale('log')
+plt.title('Fourier Transform for H0')
+plt.savefig('H3P5_FT.png')
+plt.show()
 
 
 
