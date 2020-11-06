@@ -147,8 +147,8 @@ Frequency
 ##Hanford
 sig_H = NH**(1/2)
 chisq_H = (AFT_H/sig_H)**2
-freq = np.fft.fftfreq(chisq_H.size, (dt_H))
-plt.plot(np.cumsum((np.abs(chisq_H))))
+freq_H = np.fft.fftfreq(chisq_H.size, dt_H)
+plt.plot(np.abs(freq_H), np.cumsum((np.abs(chisq_H))))
 #plt.title('Cumulative Sum of Chis^2 for Hanford')
 #plt.savefig('CS Chisq H.png')
 #plt.plot(np.abs(freq), np.abs((chisq_H)))
@@ -158,11 +158,11 @@ plt.plot(np.cumsum((np.abs(chisq_H))))
 ##Livingston
 sig_L = NL**(1/2)
 chisq_L = (AFT_L/ sig_L)**2
-freq = np.fft.fftfreq(chisq_L.size, dt_L)
-#plt.plot(np.cumsum(np.abs(chisq_L)))
+freq_L = np.fft.fftfreq(chisq_L.size, dt_L)
+#plt.plot(np.abs(freq_L), np.cumsum(np.abs(chisq_L)))
 #plt.title('Cumulative Sum of Chis^2 for Livingston')
 #plt.savefig('CS Chisq L.png')
-#plt.plot(np.abs(freq), np.abs(chisq_L))
+#plt.plot(np.abs(freq_L), np.abs(chisq_L))
 #plt.title('Chi^2 for Livingston' )
 #plt.savefig('Chisq L.png')
 
