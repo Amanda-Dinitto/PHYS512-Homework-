@@ -64,7 +64,7 @@ window_L = signal.tukey(len(strain_L))
 strain_window_L = strain_L*window_L
 sL_FT = np.fft.rfft(strain_window_L)
 
-##Smoothing/whitening using a guassian filter and boxcar filter 
+##Smoothing/whitening using a boxcar filter 
 #Hanford
 estimate_H = np.abs(sH_FT)**2
 eFT_H = np.fft.rfft(estimate_H)
@@ -103,7 +103,6 @@ Matched filter processing the events
 A_H = window_H*th  ##have to window the data as well 
 AFT_H = np.fft.rfft(A_H)
 matched_filter_H = np.fft.irfft(np.conj(AFT_H)*(sH_FT/NH))
-
 noise_H = np.std(matched_filter_H)
 print('Noise for Hanford', noise_H)
 s2n_H = np.max(np.abs(matched_filter_H))/noise_H ##SNR for matched filter 
@@ -146,15 +145,14 @@ Problem e
 Frequency 
 """
 ##Hanford
-
 sig_H = NH**(1/2)
 chisq_H = ((AFT_H/sig_H)**2)
 freq_H = np.fft.fftfreq(len(chisq_H), d=dt_H)
 sum_H = np.cumsum(np.abs((chisq_H)))
-x_val_H = np.interp(0.5e8, np.cumsum(np.abs(chisq_H)), np.abs(freq_H))
+x_val_H = np.interp(0.5e8, np.cumsum(np.abs(chisq_H)), np.abs(freq_H)) ##solve for freq and midpoint
 print(x_val_H)
 plt.plot(np.abs(freq_H), sum_H)
-plt.plot([0,2000], [0.5e8, 0.5e8], '--')
+plt.plot([0,2000], [0.5e8, 0.5e8], '--') ##straight line for midpoint 
 plt.title('Cumulative Sum of Chis^2 for GW1701046_H')
 #plt.savefig('CS Chisq H_GW170104.png')
 plt.plot(np.abs(freq_H), np.abs(chisq_H))
@@ -164,10 +162,10 @@ plt.title('Chi^2 for GW170104_H' )
 ##Livingston
 chisq_L = (AFT_L/ (NL**0.5))**2
 freq_L = np.fft.fftfreq(len(chisq_L), d = dt_L)
-x_val_L = np.interp(0.5e8, np.cumsum(np.abs(chisq_L)), np.abs(freq_L))
+x_val_L = np.interp(0.5e8, np.cumsum(np.abs(chisq_L)), np.abs(freq_L)) ##solve for freq at midpoint
 print(x_val_L)           
 plt.plot(np.abs(freq_L), np.cumsum(np.abs(chisq_L)))
-plt.plot([0,2000], [0.5e8, 0.5e8], '--')
+plt.plot([0,2000], [0.5e8, 0.5e8], '--') ##straight line for midpoint 
 plt.title('Cumulative Sum of Chis^2 for GW170104_L')
 #plt.savefig('CS Chisq L_GW170104.png')
 plt.plot(np.abs(freq_L), np.abs(chisq_L))
@@ -178,11 +176,11 @@ plt.title('Chi^2 for GW170104_L' )
 Problem f
 Arrival Time
 """
-print(dt_H, dt_L)
+print(dt_H, dt_L) ##time step 
 plt.plot(np.abs(matched_filter_L[2000:3000]))
 plt.title('Peak Zoom for GW151226')
 #plt.savefig('Zoom for GW151226.png')
-max_y = np.max(np.abs(matched_filter_L[2662]))
+max_y = np.max(np.abs(matched_filter_L[2662])) ##solving for values near peak to get FWHM
 print(max_y)
 max_x = [np.abs(matched_filter_L).argmax()]
 print(max_x)
