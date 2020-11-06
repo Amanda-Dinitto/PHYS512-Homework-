@@ -70,17 +70,12 @@ window_L = signal.tukey(len(strain_L))
 strain_window_L = strain_L*window_L
 sL_FT = np.fft.rfft(strain_window_L)
 
-##Smoothing/whitening using a guassian filter and boxcar filter 
+##Smoothing/whitening using a boxcar filter 
 #Hanford
 estimate_H = np.abs(sH_FT)**2
 eFT_H = np.fft.rfft(estimate_H)
 npix = 10
 vec = np.zeros(len(estimate_H))
-"""
-gaussian filter
-#x = np.arange(0,1,0.1)
-#vec[:npix] = np.exp(-0.5*x**2/(0.5)**2)
-"""
 ##Boxcar filter 
 vec[:npix] = 1
 vec[-npix+1:]=1
@@ -94,11 +89,6 @@ NH = np.maximum(estimate_H, N_H)
 #Livingston
 estimate_L = (np.abs(sL_FT)**2)
 eFT_L = np.fft.rfft(estimate_L)
-"""
-gaussian filter
-#x = np.arange(0,1,0.1)   
-#vec[:npix] = np.exp(-0.5*x**2/(0.2**2))
-"""
 ##Boxcar filter 
 vec[:npix] = 1
 vec[-npix+1:]=1
@@ -154,7 +144,25 @@ print(n_L)
 Problem e
 Frequency 
 """
-F_H = np.real((AFT_H/(np.sqrt(NH)))**2)
-freq = np.fft.fftfreq(F_H.size, dt_H)
-plt.plot(freq, np.cumsum(F_H))
+##Hanford
+sig_H = NH**(1/2)
+chisq_H = (AFT_H/sig_H)**2
+freq = np.fft.fftfreq(chisq_H.size, (dt_H))
+plt.plot(np.cumsum((np.abs(chisq_H))))
+#plt.title('Cumulative Sum of Chis^2 for Hanford')
+#plt.savefig('CS Chisq H.png')
+#plt.plot(np.abs(freq), np.abs((chisq_H)))
+#plt.title('Chi^2 for Hanford' )
+#plt.savefig('Chisq H.png')
+
+##Livingston
+sig_L = NL**(1/2)
+chisq_L = (AFT_L/ sig_L)**2
+freq = np.fft.fftfreq(chisq_L.size, dt_L)
+#plt.plot(np.cumsum(np.abs(chisq_L)))
+#plt.title('Cumulative Sum of Chis^2 for Livingston')
+#plt.savefig('CS Chisq L.png')
+#plt.plot(np.abs(freq), np.abs(chisq_L))
+#plt.title('Chi^2 for Livingston' )
+#plt.savefig('Chisq L.png')
 
