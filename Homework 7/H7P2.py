@@ -1,12 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Dec  3 17:40:22 2020
-
-@author: amanda
-"""
-
-
 import numpy as np 
 from matplotlib import pyplot as plt
 import scipy
@@ -94,23 +85,24 @@ mask[:,0] = True
 mask[:,-1] = True 
 mask[n//5:n//3, n//5:n//3] = True 
 pot[n//5:n//3, n//5:n//3] = 1.0
-b = new_b(pot, mask)
-rho = conjugate_gradient(b, V, mask, iter=30)
+"""Plot BC to check it makes a square"""
 plt.imshow(pot)
 plt.title('Potential Boundary Conditions')
-plt.savefig('H7P2B_BC.png')
-#plt.plot(rho[n//3,:]) #plot only one side of box 
-#plt.title('Charge Density on One Side of Box')
+#plt.savefig('H7P2B_BC.png')
+b = new_b(pot, mask)
+rho = conjugate_gradient(b, V, mask, iter=30). ##Calculate rho via conjugate gradient 
+plt.plot(rho[n//3,:]) #plot only one side of box 
+plt.title('Charge Density on One Side of Box')
 #plt.savefig('H7P2B.png')
 
 """Part C: Now calculate the potential everywhere using rho and green's"""
 
 VV = V + pot ##Include boundary conditions from green's function potential  
 Potential = scipy.signal.convolve2d(VV, rho)
-#print(Potential[n//5:n//3, n//5:n//3])
-#plt.imshow(Potential)
-#plt.colorbar()
-#plt.title('Potential')
+print(Potential[n//5:n//3, n//5:n//3])
+plt.imshow(Potential)
+plt.colorbar()
+plt.title('Potential')
 #plt.savefig('H7P2C.png')
 plt.show()
 
