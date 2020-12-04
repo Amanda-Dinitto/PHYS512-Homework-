@@ -6,8 +6,7 @@ plt.ion()
 
 def green_theorem(n):
     pot = np.zeros([n,n])
-    rho = np.zeros([n,n])
-    x = np.linspace(-1*(nn//2), n//2, n)
+    x = np.linspace(-1*(n//2), n//2, n)
     xx, yy = np.meshgrid(x,x)
     r = np.sqrt(xx**2 + yy**2)
     r[0,0] = 1.0e-8    ##Avoid code crashing because of log(0)
