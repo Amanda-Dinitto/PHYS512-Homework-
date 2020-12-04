@@ -7,21 +7,14 @@ plt.ion()
 def green_theorem(n):
     pot = np.zeros([n,n])
     rho = np.zeros([n,n])
-    x = np.arange(n)
+    x = np.linspace(-1*(nn//2), n//2, n)
     xx, yy = np.meshgrid(x,x)
     r = np.sqrt(xx**2 + yy**2)
     r[0,0] = 1.0e-8    ##Avoid code crashing because of log(0)
     pot = np.log(r)/2*np.pi    ##equation for potential
-    pot=pot-pot[n//2,n//2]     ##make potential zero at edges 
-    pot[1,0] = (pot[0,0] + pot[2,0] + pot[1,1] + pot[1,-1])/4
     pot[0,0] = 4*pot[1,0] - pot[2,0] - pot[1,1] - pot[1,-1]  ##using neighbors solve for singularity potential 
     C = 1/pot[0,0]
-    pot[0,0] = C*(4*pot[1,0] - pot[2,0] - pot[1,1] - pot[1,-1]) # add scaling factor so pot[0,0] = 1.0
-    pot[1,0] = C + (pot[0,0] + pot[2,0] + pot[1,1] + pot[1,-1])/4
-    #rho = pot - (np.roll(pot,1,axis=0) + np.roll(pot,-1,axis=0) + np.roll(pot,1,axis=1) + np.roll(pot,-1, axis=1))/4  ##equation for rho 
-    #rho[0,0] = 1.0
-    #pot = pot*rho ##update pot equation 
-    pot[5,0] = C + (pot[4,0] + pot[6,0] + pot[5,-1] + pot[5,1])/4   ##Sanity check 
+    pot[0,0] = C*(4*pot[1,0] - pot[2,0] - pot[1,1] - pot[1,-1]) # update with scaling factor so pot[0,0] = 1.0
     print('Potential at [5,0] is', pot[5,0])
     return pot 
 
