@@ -3,21 +3,20 @@ from matplotlib import pyplot as plt
 import scipy
 from scipy import signal
 plt.ion()
-
 def green_theorem(n):
     pot = np.zeros([n,n])
     x = np.linspace(-1*(n//2), n//2, n)
     xx, yy = np.meshgrid(x,x)
     r = np.sqrt(xx**2 + yy**2)
-    r[0,0] = 1.0e-8    ##Avoid code crashing because of log(0)
+    r[n//2,n//2] = 1.0e-8 ##to avoid log crashing at log(0)
     pot = np.log(r)/2*np.pi    ##equation for potential
-    pot[0,0] = 4*pot[1,0] - pot[2,0] - pot[1,1] - pot[1,-1]  ##using neighbors solve for singularity potential 
+    pot[0,0] = 4*pot[1,0] - pot[2,0] - pot[1,1] - pot[1,-1]  ##using neighbors of V[1,0] to solve for singularity potential 
     C = 1/pot[0,0]
-    pot[0,0] = C*(4*pot[1,0] - pot[2,0] - pot[1,1] - pot[1,-1]) # update with scaling factor so pot[0,0] = 1.0
+    pot = pot*C  # update with scaling factor so pot[0,0] = 1.0
     print('Potential at [5,0] is', pot[5,0])
     return pot 
 
-n = 100
+n = 99
 V = green_theorem(n)
 
 """
@@ -89,8 +88,7 @@ plt.title('Charge Density on One Side of Box')
 
 """Part C: Now calculate the potential everywhere using rho and green's"""
 
-VV = V + pot ##Include boundary conditions from green's function potential  
-Potential = scipy.signal.convolve2d(VV, rho)
+Potential = scipy.signal.convolve2d(V, rho)
 print(Potential[n//5:n//3, n//5:n//3])
 plt.imshow(Potential)
 plt.colorbar()
