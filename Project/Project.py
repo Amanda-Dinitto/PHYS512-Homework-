@@ -40,7 +40,7 @@ def get_potential(x, y, z, n, soft = 0.01):
 
 def get_force(x, y, z, m, n, soft = 0.01):
     pot = get_potential(x, y, z, n, soft = 0.01)
-    ax, ay, az = np.gradient(pot, 3) ##first order deriv in terms of r
+    ax, ay, az = np.gradient(pot, 3) 
     fx = ax*m
     fy = ay*m
     fz = az*m
@@ -79,7 +79,7 @@ vx = 0.0*x #velocity is zero
 vy = 0.0*y
 vz = 0.0*z
 soft = 0.01
-dt = soft**1.5 ##dt given by v_max/a_max = soft**-1.5
+dt = soft**1.5 ##dt given by v_max/a_max = soft**1.5
 
 for i in range(10):
     x,y,z,pot, kinetic = take_leapfrog_step(x,y,z,vx,vy,vz,dt, m, n)
