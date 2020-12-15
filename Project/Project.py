@@ -40,7 +40,6 @@ def get_potential(x, y, z, n, soft = 0.01):
 def get_force(x, y, z, m, n, soft = 0.01):
     pot = get_potential(x, y, z, n, soft = 0.01)
     ax = np.gradient(pot, axis=0) 
-    #print(pot)
     ay = np.gradient(pot, axis=1)
     az = np.gradient(pot, axis=2)
     fx = ax*m
