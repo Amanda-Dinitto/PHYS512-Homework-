@@ -42,22 +42,31 @@ def get_potential(x, y, z, n, soft = 0.01):
    potential = np.fft.ifftn(G*r)
    return potential, greens
 
-def get_force(x, y, z, m, n, soft = 0.01):
-    potential, greens = get_potential(x, y, z, n, soft = 0.01)
-    #points = (x,y,z)
-    pot = potential - np.roll(greens, [1,1,1], axis = (0,1,2))
-    #print(np.real(pot))
-    #assert 1==0
-    dx = np.gradient(pot, axis=0) 
-    dy = np.gradient(pot, axis=1)
-    dz = np.gradient(pot, axis=2)
-    ax = dx[1,1,1]
-    ay = dy[1,1,1]
-    az = dz[1,1,1]
-    fx = ax*m
-    fy = ay*m
-    fz = az*m
-    return fx, fy, fz, pot  
+def get_force(x, y, z, m, n, soft = 0.1):
+    potential, greens = get_potential(x, y, z, n)
+    for i in range(len(x)):
+        
+        pot = potential - np.roll(greens, [x,y,z], axis = (0,1,2))
+        #assert 1==0
+        dx = np.gradient(pot, axis=0) 
+        dy = np.gradient(pot, axis=1)
+        dz = np.gradient(pot, axis=2)
+        ax = dx[x,y,z]
+        ay = dy[x,y,z]
+        az = dz[x,y,z]
+        a_max = 1/soft**2
+        #print(a_max)
+        """softening"""
+        if ax > a_max: 
+            ax = a_max
+        if ay > a_max: 
+            ay = a_max
+        if az > a_max :
+            az = a_max 
+        fx = (ax)*m
+        fy = (ay)*m
+        fz = (az)*m
+    return fx, fy, fz, pot   
 
 def take_leapfrog_step(x, y, z, vx, vy, vz, dt, m, n):
     """take half step"""
