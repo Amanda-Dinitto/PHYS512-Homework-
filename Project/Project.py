@@ -1,58 +1,65 @@
 import numpy as np 
 from matplotlib import pyplot as plt 
+from mpl_toolkits import mplot3d
+from matplotlib import cm 
 
-def greens_fn(x, y, z, soft = 0.01): 
-    n = len(x)
-    pot = np.zeros([n,n,n])
-    for i in range(n):
-        for j in range (i,n):
-            dx = x[i] - x[j]
-            dy = y[i] - y[j]
-            dz = z[i] - z[j] 
-            xmat, ymat, zmat = np.meshgrid(dx,dy,dz)
-            print(xmat,ymat,zmat)
-            rsqr = xmat**2 + ymat**2 + zmat**2
-            #if rsqr < soft**2: ##add in softening for if r<R 
-            #    rsqr = soft**2 
-            if rsqr == 0:
-                rsqr = 1
-            dr = np.sqrt(rsqr)
-    return pot 
 
+
+
+
+def greens_fn(n, soft = 0.01 ): 
+    dx = np.arange(n)
+    dx[n//2:]=dx[n//2:]-n
+    pot=np.zeros([n,n,n])
+    xmat,ymat, zmat=np.meshgrid(dx,dx,dx)
+    dr=np.sqrt(xmat**2+ymat**2 + zmat**2)
+    #print(dr)
+    dr[0,0,0]=1 #dial something in so we don't get errors
+    #if dr < soft:
+    #    dr = soft 
+    pot=1/(4*np.pi*dr)
+    pot_soft= 1/(4*np.pi*soft)
+    if pot > pot_soft: 
+        pot = pot_soft
+    #pot=pot-pot[n//2,n//2]  #set it so the potential at the edge goes to zero is this padding??
+    #assert 1==0
+    return pot
+    
 def density_grid(x, y, z, n):
     points = (x,y,z)
-    #print(points)
-    grid_min = -n
-    grid_max = n
-    n_grid = 2*n
-    H, edges = np.histogramdd(points, bins = n_grid, range=((grid_min, grid_max), (grid_min, grid_max), (grid_min, grid_max)))
-    return H 
+    grid_min = -n/2
+    grid_max = n/2
+    n_grid = n
+    H, edges = np.histogramdd(points, bins = n_grid, range=((grid_min, grid_max), (grid_min, grid_max), (grid_min, grid_max))) 
+    return H
     
 
 def get_potential(x, y, z, n, soft = 0.01):
-   greens = greens_fn(x, y, z, soft = 0.01)
+   greens = greens_fn(n, soft = 0.01)
    rho = density_grid(x, y, z, n)
    G = np.fft.fftn(greens)
    r = np.fft.fftn(rho)
    potential = np.fft.ifftn(G*r)
-   return potential, greens 
+   return potential, greens
 
 def get_force(x, y, z, m, n, soft = 0.01):
-    pot, greens = get_potential(x, y, z, n, soft = 0.01)
-    points = (x,y,z)
+    potential, greens = get_potential(x, y, z, n, soft = 0.01)
+    #points = (x,y,z)
+    pot = potential - np.roll(greens, [1,1,1], axis = (0,1,2))
+    #print(np.real(pot))
+    #assert 1==0
     dx = np.gradient(pot, axis=0) 
     dy = np.gradient(pot, axis=1)
     dz = np.gradient(pot, axis=2)
-    ax = dx[points]
-    ay = dy[points]
-    az = dz[points] ##fix these up 
+    ax = dx[1,1,1]
+    ay = dy[1,1,1]
+    az = dz[1,1,1]
     fx = ax*m
     fy = ay*m
     fz = az*m
     return fx, fy, fz, pot  
 
 def take_leapfrog_step(x, y, z, vx, vy, vz, dt, m, n):
-    #m = m*np.ones(n)  ##change this 
     """take half step"""
     xx = x + 0.5*vx*dt
     yy = y + 0.5*vy*dt
@@ -74,45 +81,64 @@ def take_leapfrog_step(x, y, z, vx, vy, vz, dt, m, n):
 """
 #Part A: Single particle at rest
 """
-n = 1
+n = 3 ##this is size of grid NOT number of particles 
 m = 1
+##the following points describe the single particle position 
 x = np.array([0])
 y = np.array([0])
 z = np.array([0])
-vx = 0.0*x #velocity is zero 
-vy = 0.0*y
-vz = 0.0*z
+vx = 0.0 #velocity is zero 
+vy = 0.0
+vz = 0.0
 soft = 0.01
 dt = soft**1.5 ##dt given by v_max/a_max = soft**1.5
-
+#pot = 0
 for iter in range(10):
     x,y,z, vx, vy, vz, pot = take_leapfrog_step(x,y,z,vx,vy,vz,dt, m, n)
-    #KE = 0.5*np.sum(m*(vx**2 + vy**2 + vz**2)) 
-    #print(np.real((pot-KE)/2))
+    KE = 0.5*np.sum(m*(vx**2 + vy**2 + vz**2)) 
 ##now plt particle position over time 
-    print(np.real(x))
+    #print(np.real(x), np.real(y), np.real(z))
     plt.ion()
     fig = plt.figure()
     ax = plt.axes(projection='3d')
     ax.scatter3D(np.real(x),np.real(y),np.real(z))
-    ##plt.savefig
+    ax.set_xlim(-1e-17,1e-17)
+    ax.set_ylim(-1e-17,1e-17)
+    ax.set_zlim(-1e-17,1e-17)
+    #plt.savefig('single point iteration'+ str(iter)+'.png')
     plt.show()
     
 """
 Part B: 2 Particles in Circular Orbit
 ##work in progress still
 
-n = 2
+n = 10
 m = 1.0
-x = np.random.randn(n)
-y = np.random.randn(n)
-z = np.random.randn(n)
+x = np.array([0,1])
+y = np.array([0,1])
+z = np.array([0,1])
+v???
 
-r = np.sqrt(x**2 + y**2 + z**2) ##radius is this right?
-m1 = m2 = 1.0 ##mass of 2 particles 
-g = 1.0 #gravitational constant is it necessary? 
-v = np.sqrt((g*(m1+m2))/r) ## velocity in circular motion
-v = 0.0*v  ??? how to separate the velocity components?
+soft = 0.01
 dt = soft**1.5*0.05 ##dt given by v_max/a_max = soft**1.5
+for iter in range(10):
+    x,y,z, vx, vy, vz, pot = take_leapfrog_step(x,y,z,vx,vy,vz,dt, m, n)
+    KE = 0.5*np.sum(m*(vx**2 + vy**2 + vz**2)) 
+    #print(np.real((pot-KE)/2))
+##now plt particle position over time 
+    plt.ion()
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    ax.scatter3D(np.real(x),np.real(y),np.real(z))
+    ##set limits
+    #plt.savefig('single point iteration'+ str(iter)+'.png')
+    plt.show()
+
+
+Part C: Many Particles with Periodic and Non-Periodic Boundary Conditions
+Due to the wrap-around nature of FFT's the code as is is periodic. Non-Periodic 
+can be done by eliminating said wrap-around nature when taking the convolution.
+This is done by padding the functions we are convolving with zeros. 
 """
+
 
