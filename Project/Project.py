@@ -1,19 +1,22 @@
 import numpy as np 
 from matplotlib import pyplot as plt 
 
-
 def greens_fn(x, y, z, soft = 0.01): 
     n = len(x)
+    pot = np.zeros([n,n,n])
     for i in range(n):
         for j in range (i,n):
             dx = x[i] - x[j]
             dy = y[i] - y[j]
             dz = z[i] - z[j] 
-            rsqr = dx**2 + dy**2 + dz**2
-            if rsqr < soft**2: ##add in softening for if r<R 
-                rsqr = soft**2 
-            r = np.sqrt(rsqr)
-            pot = 1/(4*np.pi*r) ## Laplacian in 3D 
+            xmat, ymat, zmat = np.meshgrid(dx,dy,dz)
+            print(xmat,ymat,zmat)
+            rsqr = xmat**2 + ymat**2 + zmat**2
+            #if rsqr < soft**2: ##add in softening for if r<R 
+            #    rsqr = soft**2 
+            if rsqr == 0:
+                rsqr = 1
+            dr = np.sqrt(rsqr)
     return pot 
 
 def density_grid(x, y, z, n):
@@ -23,9 +26,6 @@ def density_grid(x, y, z, n):
     grid_max = n
     n_grid = 2*n
     H, edges = np.histogramdd(points, bins = n_grid, range=((grid_min, grid_max), (grid_min, grid_max), (grid_min, grid_max)))
-    edges_x = edges[0]
-    edges_y = edges[1]
-    edges_z = edges[2] 
     return H 
     
 
@@ -35,13 +35,17 @@ def get_potential(x, y, z, n, soft = 0.01):
    G = np.fft.fftn(greens)
    r = np.fft.fftn(rho)
    potential = np.fft.ifftn(G*r)
-   return potential 
+   return potential, greens 
 
 def get_force(x, y, z, m, n, soft = 0.01):
-    pot = get_potential(x, y, z, n, soft = 0.01)
-    ax = np.gradient(pot, axis=0) 
-    ay = np.gradient(pot, axis=1)
-    az = np.gradient(pot, axis=2)
+    pot, greens = get_potential(x, y, z, n, soft = 0.01)
+    points = (x,y,z)
+    dx = np.gradient(pot, axis=0) 
+    dy = np.gradient(pot, axis=1)
+    dz = np.gradient(pot, axis=2)
+    ax = dx[points]
+    ay = dy[points]
+    az = dz[points] ##fix these up 
     fx = ax*m
     fy = ay*m
     fz = az*m
@@ -79,12 +83,20 @@ vx = 0.0*x #velocity is zero
 vy = 0.0*y
 vz = 0.0*z
 soft = 0.01
-dt = soft**1.5 ##dt given by v_max/a_max = soft**-1.5
+dt = soft**1.5 ##dt given by v_max/a_max = soft**1.5
 
 for iter in range(10):
     x,y,z, vx, vy, vz, pot = take_leapfrog_step(x,y,z,vx,vy,vz,dt, m, n)
     #KE = 0.5*np.sum(m*(vx**2 + vy**2 + vz**2)) 
+    #print(np.real((pot-KE)/2))
 ##now plt particle position over time 
+    print(np.real(x))
+    plt.ion()
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    ax.scatter3D(np.real(x),np.real(y),np.real(z))
+    ##plt.savefig
+    plt.show()
     
 """
 Part B: 2 Particles in Circular Orbit
