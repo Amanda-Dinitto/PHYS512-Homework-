@@ -40,20 +40,22 @@ def get_potential(x, y, z, n, soft = 0.01):
 
 def get_force(x, y, z, m, n, soft = 0.1):
     potential, greens = get_potential(x, y, z, n)
+    fx = np.zeros(len(x))
+    fy = np.zeros(len(y))
+    fz = np.zeros(len(z))
     for i in range(len(x)):
         bins = np.linspace(-5,5,1)
-        #print(bins)
-        particle_x_bins = np.digitize(np.real(x), bins, right=True)
-        particle_y_bins = np.digitize(np.real(y), bins, right=True)
-        particle_z_bins = np.digitize(np.real(z), bins, right=True)
-        pot = potential - np.roll(greens, [particle_x_bins[i],particle_y_bins[i],particle_z_bins[i]], axis = (0,1,2))
+        particle_x_bins = np.digitize(np.real(x[i]), bins, right=True)
+        particle_y_bins = np.digitize(np.real(y[i]), bins, right=True)
+        particle_z_bins = np.digitize(np.real(z[i]), bins, right=True)
+        pot = potential - np.roll(greens, [particle_x_bins,particle_y_bins,particle_z_bins], axis = (0,1,2))
         #assert 1==0
         dx = np.gradient(pot, axis=0) 
         dy = np.gradient(pot, axis=1)
         dz = np.gradient(pot, axis=2)
-        ax = dx[particle_x_bins[i], particle_y_bins[i], particle_z_bins[i]]
-        ay = dy[particle_x_bins[i], particle_y_bins[i], particle_z_bins[i]]
-        az = dz[particle_x_bins[i], particle_y_bins[i], particle_z_bins[i]]
+        ax = dx[particle_x_bins, particle_y_bins, particle_z_bins]
+        ay = dy[particle_x_bins, particle_y_bins, particle_z_bins]
+        az = dz[particle_x_bins, particle_y_bins, particle_z_bins]
         a_max = 1/soft**2
         """softening"""
         if ax > a_max: 
@@ -62,13 +64,10 @@ def get_force(x, y, z, m, n, soft = 0.1):
             ay = a_max
         if az > a_max :
             az = a_max 
-        fx = np.zeros(len(x))
-        fy = np.zeros(len(y))
-        fz = np.zeros(len(z))
         fx = (ax)*m
         fy = (ay)*m
         fz = (az)*m
-    return fx, fy, fz  
+    return fx, fy, fz   
 
 def take_leapfrog_step(x, y, z, vx, vy, vz, dt, m, n):
     """set up arrays to store info"""
