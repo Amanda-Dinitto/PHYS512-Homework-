@@ -40,9 +40,6 @@ def get_potential(x, y, z, n, soft = 0.01):
 
 def get_force(x, y, z, m, n, soft = 0.1):
     potential, greens = get_potential(x, y, z, n)
-    fx = np.zeros(len(x))
-    fy = np.zeros(len(y))
-    fz = np.zeros(len(z))
     for i in range(len(x)):
         bins = np.linspace(-5,5,1)
         particle_x_bins = np.digitize(np.real(x[i]), bins, right=True)
@@ -70,32 +67,25 @@ def get_force(x, y, z, m, n, soft = 0.1):
     return fx, fy, fz   
 
 def take_leapfrog_step(x, y, z, vx, vy, vz, dt, m, n):
-    """set up arrays to store info"""
-    x = np.zeros(len(x))
-    y = np.zeros(len(y))
-    z = np.zeros(len(z))
-    vx = np.zeros(len(x))
-    vy = np.zeros(len(y))
-    vz = np.zeros(len(z))
-    for i in range(len(x)):
+      for i in range(len(x)):
         """take half step"""
-        xx = x[i] + 0.5*vx[i]*dt
-        yy = y[i] + 0.5*vy[i]*dt
-        zz = z[i] + 0.5*vz[i]*dt
+        xx = x[i] + 0.5*vx*dt
+        yy = y[i] + 0.5*vy*dt
+        zz = z[i] + 0.5*vz*dt
         fx, fy, fz = get_force(xx, yy, zz, m, n, soft = 0.01)
-        vvx = vx[i] + 0.5*dt*fx[i]
-        vvy = vy[i] + 0.5*dt*fy[i]
-        vvz = vz[i] + 0.5*dt*fz[i]
+        vvx = vx + 0.5*dt*fx
+        vvy = vy + 0.5*dt*fy
+        vvz = vz + 0.5*dt*fz
         """update all values"""
         x = x[i] + dt*vvx
         y = y[i] + dt*vvy
         z = z[i] + dt*vvz
-        vx = vx[i] + dt*fx[i]
-        vy = vy[i] + dt*fy[i]
-        vz = vz[i] + dt*fz[i]
-        #print(x)
-        KE = 0.5*np.sum(m*(vx[i]**2 + vy[i]**2 + vz[i]**2)) 
+        vx = vx + dt*fx
+        vy = vy + dt*fy
+        vz = vz + dt*fz
+        KE = 0.5*np.sum(m*(vx**2 + vy**2 + vz**2)) 
     return x,y,z, vx, vy, vz
+
 
 """
 #Part A: Single particle at rest
