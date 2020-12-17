@@ -17,8 +17,8 @@ def greens_fn(n):
     
 def density_grid(x, y, z, n):
     points = (x,y,z)
-    grid_min = -n/2
-    grid_max = n/2
+    grid_min = 0
+    grid_max = n
     n_grid = n
     H, edges = np.histogramdd(points, bins = n_grid, range=((grid_min, grid_max), (grid_min, grid_max), (grid_min, grid_max))) 
     return H
