@@ -12,7 +12,7 @@ def greens_fn(n):
     dr=np.sqrt(xmat**2+ymat**2 + zmat**2)
     dr[0,0,0]=1 #dial something in so we don't get errors
     pot=1/(4*np.pi*dr)
-    #pot=pot-pot[n//2,n//2]  #set it so the potential at the edge goes to zero is this padding??
+    #pot=pot-pot[n//2,n//2]  #set it so the potential at the edge goes to zero not included so far in any run
     return pot
     
 def density_grid(x, y, z, n):
