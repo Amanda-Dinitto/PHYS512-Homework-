@@ -37,6 +37,9 @@ def get_potential(x, y, z, n):
 
 def get_force(x, y, z, m, n, soft = 0.1):
     pot, edge_x, edge_y, edge_z = get_potential(x, y, z, n)
+    fx = np.zeros(x.shape)
+    fy = np.zeros(y.shape)
+    fz = np.zeros(z.shape)
     for i in range(len(x)):
         bins_x = edge_x
         bins_y = edge_y
@@ -60,13 +63,12 @@ def get_force(x, y, z, m, n, soft = 0.1):
             ay = a_max
         if az > a_max :
             az = a_max
-        fx = (ax)*m
-        fy = (ay)*m
-        fz = (az)*m
+        fx[i] = (ax)*m
+        fy[i] = (ay)*m
+        fz[i] = (az)*m
     return fx, fy, fz, pot  
 
 def take_leapfrog_step(x, y, z, vx, vy, vz, dt, m, n):
-    """set up arrays to store info"""
     """take half step"""
     xx = x + 0.5*vx*dt
     yy = y + 0.5*vy*dt
