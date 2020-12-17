@@ -3,10 +3,6 @@ from matplotlib import pyplot as plt
 from mpl_toolkits import mplot3d
 from matplotlib import cm 
 
-
-
-
-
 def greens_fn(n, soft = 0.01 ): 
     dx = np.arange(n)
     dx[n//2:]=dx[n//2:]-n
@@ -45,17 +41,20 @@ def get_potential(x, y, z, n, soft = 0.01):
 def get_force(x, y, z, m, n, soft = 0.1):
     potential, greens = get_potential(x, y, z, n)
     for i in range(len(x)):
-        
-        pot = potential - np.roll(greens, [x,y,z], axis = (0,1,2))
+        bins = np.linspace(-5,5,1)
+        #print(bins)
+        particle_x_bins = np.digitize(np.real(x), bins, right=True)
+        particle_y_bins = np.digitize(np.real(y), bins, right=True)
+        particle_z_bins = np.digitize(np.real(z), bins, right=True)
+        pot = potential - np.roll(greens, [particle_x_bins[i],particle_y_bins[i],particle_z_bins[i]], axis = (0,1,2))
         #assert 1==0
         dx = np.gradient(pot, axis=0) 
         dy = np.gradient(pot, axis=1)
         dz = np.gradient(pot, axis=2)
-        ax = dx[x,y,z]
-        ay = dy[x,y,z]
-        az = dz[x,y,z]
+        ax = dx[particle_x_bins[i], particle_y_bins[i], particle_z_bins[i]]
+        ay = dy[particle_x_bins[i], particle_y_bins[i], particle_z_bins[i]]
+        az = dz[particle_x_bins[i], particle_y_bins[i], particle_z_bins[i]]
         a_max = 1/soft**2
-        #print(a_max)
         """softening"""
         if ax > a_max: 
             ax = a_max
@@ -63,29 +62,41 @@ def get_force(x, y, z, m, n, soft = 0.1):
             ay = a_max
         if az > a_max :
             az = a_max 
+        fx = np.zeros(len(x))
+        fy = np.zeros(len(y))
+        fz = np.zeros(len(z))
         fx = (ax)*m
         fy = (ay)*m
         fz = (az)*m
-    return fx, fy, fz, pot   
+    return fx, fy, fz  
 
 def take_leapfrog_step(x, y, z, vx, vy, vz, dt, m, n):
-    """take half step"""
-    xx = x + 0.5*vx*dt
-    yy = y + 0.5*vy*dt
-    zz = z + 0.5*vz*dt
-    fx, fy, fz, pot = get_force(xx, yy, zz, m, n)
-    vvx = vx + 0.5*dt*fx
-    vvy = vy + 0.5*dt*fy
-    vvz = vz + 0.5*dt*fz
-    """update all values"""
-    x = x + dt*vvx
-    y = y + dt*vvy
-    z = z + dt*vvz
-    vx = vx + dt*fx
-    vy = vy + dt*fy
-    vz = vz + dt*fz
-    return x,y,z, vx, vy, vz, pot
-
+    """set up arrays to store info"""
+    x = np.zeros(len(x))
+    y = np.zeros(len(y))
+    z = np.zeros(len(z))
+    vx = np.zeros(len(x))
+    vy = np.zeros(len(y))
+    vz = np.zeros(len(z))
+    for i in range(len(x)):
+        """take half step"""
+        xx = x[i] + 0.5*vx[i]*dt
+        yy = y[i] + 0.5*vy[i]*dt
+        zz = z[i] + 0.5*vz[i]*dt
+        fx, fy, fz = get_force(xx, yy, zz, m, n, soft = 0.01)
+        vvx = vx[i] + 0.5*dt*fx[i]
+        vvy = vy[i] + 0.5*dt*fy[i]
+        vvz = vz[i] + 0.5*dt*fz[i]
+        """update all values"""
+        x = x[i] + dt*vvx
+        y = y[i] + dt*vvy
+        z = z[i] + dt*vvz
+        vx = vx[i] + dt*fx[i]
+        vy = vy[i] + dt*fy[i]
+        vz = vz[i] + dt*fz[i]
+        #print(x)
+        KE = 0.5*np.sum(m*(vx[i]**2 + vy[i]**2 + vz[i]**2)) 
+    return x,y,z, vx, vy, vz
 
 """
 #Part A: Single particle at rest
