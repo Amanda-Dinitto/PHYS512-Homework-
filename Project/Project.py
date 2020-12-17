@@ -16,30 +16,36 @@ def greens_fn(n):
     return pot
     
 def density_grid(x, y, z, n):
-    points = (x,y,z)
+    points = (np.real(x),np.real(y),np.real(z))
     grid_min = 0
     grid_max = n
     n_grid = n
     H, edges = np.histogramdd(points, bins = n_grid, range=((grid_min, grid_max), (grid_min, grid_max), (grid_min, grid_max))) 
-    return H
+    edges_x = edges[0]
+    edges_y = edges[1]
+    edges_z = edges[2]
+    return H, edges_x, edges_y, edges_z 
     
 
 def get_potential(x, y, z, n):
    greens = greens_fn(n)
-   rho = density_grid(x, y, z, n)
+   rho, edge_x, edge_y, edge_z = density_grid(x, y, z, n)
    G = np.fft.fftn(greens)
    r = np.fft.fftn(rho)
    potential = np.fft.ifftn(G*r)
-   return potential
+   return potential, edge_x, edge_y, edge_z
 
 def get_force(x, y, z, m, n, soft = 0.1):
-    pot= get_potential(x, y, z, n)
+    pot, edge_x, edge_y, edge_z = get_potential(x, y, z, n)
     for i in range(len(x)):
-        bins = np.linspace(-2,2,1)
+        bins_x = edge_x
+        bins_y = edge_y
+        bins_z = edge_z 
         print(np.real(x[i]), np.real(y[i]), np.real(z[i]))
-        particle_x_bins = np.digitize(np.real(x), bins, right=True)
-        particle_y_bins = np.digitize(np.real(y), bins, right=True)
-        particle_z_bins = np.digitize(np.real(z), bins, right=True)
+        particle_x_bins = np.digitize(np.real(x), bins_x, right=True)
+        #print(particle_x_bins)
+        particle_y_bins = np.digitize(np.real(y), bins_y, right=True)
+        particle_z_bins = np.digitize(np.real(z), bins_z, right=True)
         dx = np.gradient(pot, axis=0) 
         dy = np.gradient(pot, axis=1)
         dz = np.gradient(pot, axis=2)
