@@ -34,7 +34,6 @@ def get_potential(x, y, z, n):
 
 def get_force(x, y, z, m, n, soft = 0.1):
     pot= get_potential(x, y, z, n)
-    #print(np.real(x))
     for i in range(len(x)):
         bins = np.linspace(-2,2,1)
         print(np.real(x[i]), np.real(y[i]), np.real(z[i]))
