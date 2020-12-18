@@ -36,37 +36,27 @@ def get_potential(x, y, z, n):
    return potential, edge_x, edge_y, edge_z
 
 def get_force(x, y, z, m, n, soft = 0.1):
-    pot, edge_x, edge_y, edge_z = get_potential(x, y, z, n)
-    fx = np.zeros(x.shape)
-    fy = np.zeros(y.shape)
-    fz = np.zeros(z.shape)
+    pot = get_potential(x, y, z, n)
+    fx = np.zeros([x.shape[0], y.shape[0], z.shape[0]])
+    fy = np.zeros([x.shape[0], y.shape[0], z.shape[0]])
+    fz = np.zeros([x.shape[0], y.shape[0], z.shape[0]])
+    dx, dy, dz = np.gradient(pot) 
+    rho, edge_x, edge_y, edge_z = density_grid(x,y,z,n)
+    bins_x = edge_x
+    bins_y = edge_y
+    bins_z = edge_z    
+    particle_x_bins = np.digitize(np.real(x), bins_x, right=True)
+    particle_y_bins = np.digitize(np.real(y), bins_y, right=True)
+    particle_z_bins = np.digitize(np.real(z), bins_z, right=True)   
     for i in range(len(x)):
-        bins_x = edge_x
-        bins_y = edge_y
-        bins_z = edge_z 
-        print(np.real(x[i]), np.real(y[i]), np.real(z[i]))
-        particle_x_bins = np.digitize(np.real(x), bins_x, right=True)
-        #print(particle_x_bins)
-        particle_y_bins = np.digitize(np.real(y), bins_y, right=True)
-        particle_z_bins = np.digitize(np.real(z), bins_z, right=True)
-        dx = np.gradient(pot, axis=0) 
-        dy = np.gradient(pot, axis=1)
-        dz = np.gradient(pot, axis=2)
-        ax = dx[particle_x_bins[i], particle_y_bins[i], particle_z_bins[i]]
-        ay = dy[particle_x_bins[i], particle_y_bins[i], particle_z_bins[i]]
-        az = dz[particle_x_bins[i], particle_y_bins[i], particle_z_bins[i]]
-        a_max = 1/soft**2
-        """softening"""
-        if ax > a_max: 
-            ax = a_max
-        if ay > a_max: 
-            ay = a_max
-        if az > a_max :
-            az = a_max
-        fx[i] = (ax)*m
-        fy[i] = (ay)*m
-        fz[i] = (az)*m
+        ax = np.real(dx[particle_x_bins[i], particle_y_bins[i], particle_z_bins[i]])
+        ay = np.real(dy[particle_x_bins[i], particle_y_bins[i], particle_z_bins[i]])
+        az = np.real(dz[particle_x_bins[i], particle_y_bins[i], particle_z_bins[i]])
+        fx = -(ax)*m
+        fy = -(ay)*m
+        fz = -(az)*m
     return fx, fy, fz, pot  
+
 
 def take_leapfrog_step(x, y, z, vx, vy, vz, dt, m, n):
     """take half step"""
