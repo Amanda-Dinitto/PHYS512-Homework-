@@ -60,21 +60,20 @@ def get_force(x, y, z, m, n, soft = 0.1):
 
 def take_leapfrog_step(x, y, z, vx, vy, vz, dt, m, n):
     """take half step"""
-    xx = x + 0.5*vx*dt
-    yy = y + 0.5*vy*dt
-    zz = z + 0.5*vz*dt
+    xx = x + 0.5*((vx)*dt)
+    yy = y + 0.5*((vy)*dt)
+    zz = z + 0.5*((vz)*dt)
     fx, fy, fz, pot = get_force(xx, yy, zz, m, n, soft = 0.01)
-    vvx = vx + 0.5*dt*fx
-    vvy = vy + 0.5*dt*fy
-    vvz = vz + 0.5*dt*fz
+    vvx = vx + 0.5*(dt*fx)
+    vvy = vy + 0.5*(dt*fy)
+    vvz = vz + 0.5*(dt*fz)
     """update all values"""
-    x = x + dt*vvx
-    y = y + dt*vvy
-    z = z + dt*vvz
-    vx = vx + dt*fx
-    vy = vy + dt*fy
-    vz = vz + dt*fz
-    KE = 0.5*np.sum(m*(vx**2 + vy**2 + vz**2)) 
+    x = x + (dt*vvx)
+    y = y + (dt*vvy)
+    z = z + (dt*vvz)
+    vx = vx + (dt*fx)
+    vy = vy + (dt*fy)
+    vz = vz + (dt*fz)
     return x,y,z, vx, vy, vz, pot
 """
 #Part A: Single particle at rest
