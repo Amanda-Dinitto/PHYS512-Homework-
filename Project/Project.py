@@ -21,42 +21,35 @@ def density_grid(x, y, z, n):
     grid_max = n
     n_grid = n
     H, edges = np.histogramdd(points, bins = n_grid, range=((grid_min, grid_max), (grid_min, grid_max), (grid_min, grid_max))) 
-    edges_x = edges[0]
-    edges_y = edges[1]
-    edges_z = edges[2]
-    return H, edges_x, edges_y, edges_z 
+    return H
     
 
 def get_potential(x, y, z, n):
    greens = greens_fn(n)
-   rho, edge_x, edge_y, edge_z = density_grid(x, y, z, n)
+   rho = density_grid(x, y, z, n)
    G = np.fft.fftn(greens)
    r = np.fft.fftn(rho)
    potential = np.fft.ifftn(G*r)
-   return potential, edge_x, edge_y, edge_z
+   return potential
 
 def get_force(x, y, z, m, n, soft = 0.1):
     pot = get_potential(x, y, z, n)
-    fx = np.zeros([x.shape[0], y.shape[0], z.shape[0]])
-    fy = np.zeros([x.shape[0], y.shape[0], z.shape[0]])
-    fz = np.zeros([x.shape[0], y.shape[0], z.shape[0]])
     dx, dy, dz = np.gradient(pot) 
-    rho, edge_x, edge_y, edge_z = density_grid(x,y,z,n)
-    bins_x = edge_x
-    bins_y = edge_y
-    bins_z = edge_z    
-    particle_x_bins = np.digitize(np.real(x), bins_x, right=True)
-    particle_y_bins = np.digitize(np.real(y), bins_y, right=True)
-    particle_z_bins = np.digitize(np.real(z), bins_z, right=True)   
-    for i in range(len(x)):
-        ax = np.real(dx[particle_x_bins[i], particle_y_bins[i], particle_z_bins[i]])
-        ay = np.real(dy[particle_x_bins[i], particle_y_bins[i], particle_z_bins[i]])
-        az = np.real(dz[particle_x_bins[i], particle_y_bins[i], particle_z_bins[i]])
-        fx = -(ax)*m
-        fy = -(ay)*m
-        fz = -(az)*m
-    return fx, fy, fz, pot  
-
+    fx = np.zeros([len(x)])
+    fy = np.zeros([len(x)])
+    fz = np.zeros([len(x)])
+    for i in range(0,len(x)): 
+        x_floor = int(np.round(np.real(x[i])))
+        y_floor = int(np.round(np.real(y[i])))
+        z_floor = int(np.round(np.real(z[i])))
+        ax = np.real(dx[(x_floor), (y_floor), (z_floor)])
+        ay = np.real(dy[(x_floor), (y_floor), (z_floor)])
+        az = np.real(dz[(x_floor), (y_floor), (z_floor)])
+        fx[i] = -(ax)*m
+        fy[i] = -(ay)*m
+        fz[i] = -(az)*m
+    print(fx, fy, fz)
+    return fx, fy, fz, pot    
 
 def take_leapfrog_step(x, y, z, vx, vy, vz, dt, m, n):
     """take half step"""
@@ -64,17 +57,19 @@ def take_leapfrog_step(x, y, z, vx, vy, vz, dt, m, n):
     yy = y + 0.5*((vy)*dt)
     zz = z + 0.5*((vz)*dt)
     fx, fy, fz, pot = get_force(xx, yy, zz, m, n, soft = 0.01)
-    vvx = vx + 0.5*(dt*fx)
-    vvy = vy + 0.5*(dt*fy)
-    vvz = vz + 0.5*(dt*fz)
-    """update all values"""
-    x = x + (dt*vvx)
-    y = y + (dt*vvy)
-    z = z + (dt*vvz)
-    vx = vx + (dt*fx)
-    vy = vy + (dt*fy)
-    vz = vz + (dt*fz)
+    for i in range(0,len(x)):
+        vvx = vx[i] + 0.5*(dt*fx[i])
+        vvy = vy[i] + 0.5*(dt*fy[i])
+        vvz = vz[i] + 0.5*(dt*fz[i])
+        """update all values"""
+        x[i] = x[i] + (dt*vvx)
+        y[i] = y[i] + (dt*vvy)
+        z[i] = z[i] + (dt*vvz)
+        vx = vx + (dt*fx[i])
+        vy = vy + (dt*fy[i])
+        vz = vy + (dt*fy[i])
     return x,y,z, vx, vy, vz, pot
+
 """
 #Part A: Single particle at rest
 
