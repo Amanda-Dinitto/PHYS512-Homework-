@@ -6,13 +6,14 @@ from matplotlib import cm
 
 def greens_fn(n): 
     dx = np.arange(n)
-    dx[n//2:]=dx[n//2:]-n
     pot=np.zeros([n,n,n])
     xmat,ymat, zmat=np.meshgrid(dx,dx,dx)
     dr=np.sqrt(xmat**2+ymat**2 + zmat**2)
-    dr[0,0,0]=1 #dial something in so we don't get errors
+    dr[0,0,0]=1 #Softening in order to avoid errors at zero 
     pot=1/(4*np.pi*dr)
-    #pot=pot-pot[n//2,n//2]  #set it so the potential at the edge goes to zero not included so far in any run
+    """Flipping the edges to ensure period BC conditions"""
+    pot[n//2:,:n//2] = np.flip(pot[:n//2,:n//2], axis=0)
+    pot[:,n//2:] = np.flip(pot[:,:n//2], axis = 1)
     return pot
     
 def density_grid(x, y, z, n):
@@ -35,6 +36,11 @@ def get_potential(x, y, z, n):
 def get_force(x, y, z, m, n, soft = 0.1):
     pot = get_potential(x, y, z, n)
     dx, dy, dz = np.gradient(pot) 
+    """
+    Matrices to fill with fx, fy, and fz particle values 
+    for each step, therefore they are only the length of 
+    the number of particles each. 
+    """
     fx = np.zeros([len(x)])
     fy = np.zeros([len(x)])
     fz = np.zeros([len(x)])
@@ -72,20 +78,20 @@ def take_leapfrog_step(x, y, z, vx, vy, vz, dt, m, n):
 
 """
 #Part A: Single particle at rest
-
-n = 4 ##this is size of grid NOT number of particles 
+"""
+nsize = 4 ##this is size of grid NOT number of particles 
 m = 1
-##the following points describe the single particle 
+"""The following points describe the single particle""" 
 x = np.array([1])
 y = np.array([1])
 z = np.array([1])
-vx = 0.0*x #velocity is zero 
+"""Particle Placed at Rest"""
+vx = 0.0*x 
 vy = 0.0*y
 vz = 0.0*z
-soft = 0.01
-dt = 0.05*soft**1.5 ##dt < v_max/a_max = soft**1.5
-for iter in range(20):
-    x,y,z, vx, vy, vz = take_leapfrog_step(x,y,z,vx,vy,vz,dt, m, n)
+dt = 0.01
+for iter in range(50):
+    x,y,z, vx, vy, vz = take_leapfrog_step(x,y,z,vx,vy,vz,dt, m, nsize)
     print(np.real(x), np.real(y), np.real(z))
 
 ##now plt particle position over time 
@@ -97,47 +103,3 @@ for iter in range(20):
     #plt.savefig('single point iteration'+ str(iter)+'.png')
     plt.show()
 
-"""
-#Part B: 2 Particles in Circular Orbit
-#m1v1 = m2v2 for circular motion (or v1/r1 = v2/r2)
-##work in progress still
-n = 10
-m = 1.0
-x = np.array([1,2])
-y = np.array([1,2])
-z = np.array([1,1]) ##same z plane so they will orbit only in x and y 
-#velocities should be equal since mass is equal start at zero 
-##vx = np.zeros([2])
-#vy = np.zeros([2])
-#vz = np.zeros([2])
-vx = np.array([1,1])*0.25
-vy = np.array([1,1])*0.25
-vz = np.array([1,1])*0.25
-
-soft = 0.01
-dt = soft**1.5*0.5 ##dt given by v_max/a_max = soft**1.5
-plt.ion()
-fig = plt.figure()
-ax = fig.add_subplot(111,projection='3d')
-ax.set_xlim(0,4)
-ax.set_ylim(0,4)
-ax.set_zlim(0,4)
-#plt.pause(0.1)
-for i in range(50):
-    x,y,z, vx, vy, vz, pot = take_leapfrog_step(x,y,z,vx,vy,vz,dt, m, n)
-    KE = 0.5*np.sum(m*(vx**2 + vy**2 + vz**2)) 
-##now plt particle position over time 
-    ax.scatter3D(np.real(x[0]), np.real(y[0]), np.real(z[0]))
-    ax.scatter3D(np.real(x[1]), np.real(y[1]), np.real(z[1]))
-    #plt.title('2 Particles after iteration '+ str(i))
-    #plt.savefig('2 points circular iteration'+ str(iter)+'.png')
-plt.show()
-
-
-
-"""
-Part C: Many Particles with Periodic and Non-Periodic Boundary Conditions
-Due to the wrap-around nature of FFT's the code as is is periodic. Non-Periodic 
-can be done by eliminating said wrap-around nature when taking the convolution.
-This is done by padding the functions we are convolving with zeros. 
-"""
