@@ -9,7 +9,7 @@ def greens2(n):
     soft = 0.01
     for i in range(n):
         for j in range(n):
-            dr=np.sqrt(dx[i]**2+dx[j]**2)
+            dr=np.sqrt(dx[i]**2+dx[j]**2) #create mesh of distances from particle
             if dr < soft:
                 dr = soft
             pot[i,j]=1/(dr) 
@@ -28,15 +28,13 @@ def take_leapfrog_step(x, v, dt, m, n, num_par, G):
     a = np.gradient(potential) 
     for iter in range(800):
         vv = v.copy()
-        for i in range(num_par):
-            vv[i, 0] = v[i,0] + ((a[0][x[i,0].astype(int),x[i,1].astype(int)])/(m[i])*(dt/2)) ##x velocity 
-            vv[i, 1] = v[i,1] + ((a[1][x[i,0].astype(int),x[i,1].astype(int)])/(m[i])*(dt/2)) ##y velocity 
+        for i in range(2):
+            vv[:,i] = v[:,i] + ((a[i][x[:,0].astype(int),x[:,1].astype(int)])/(m[:])*(dt/2)) 
         x = x +(vv*dt)
         potential = get_potential(x,n,G)
         a = np.gradient(potential)
-        for i in range(num_par):
-            v[i, 0] = vv[i,0] + ((a[0][x[i,0].astype(int),x[i,1].astype(int)])/(m[i])*(dt/2)) ##x velocity 
-            v[i, 1] = vv[i,1] + ((a[1][x[i,0].astype(int),x[i,1].astype(int)])/(m[i])*(dt/2)) ##y velocity 
+        for i in range(2):
+            vv[:,i] = v[:,i] + ((a[i][x[:,0].astype(int),x[:,1].astype(int)])/(m[:])*(dt/2)) ##x velocity 
         #plt.plot(x[:,0], x[:,1], '.')
         #plt.title('2 Particles in circular orbit')
         ke = 0.5*m[i]*(np.sum(v[:,0]**2 + v[:,1]**2))
@@ -57,17 +55,8 @@ x[1,1] = 30.5
 v = np.zeros([2,2])
 v[0,0] = 0.55
 v[1,0] = -0.55
-#pot= get_potential(x,n)
-#plt.imshow(pot)
 g = greens2(n)
-plt.title('Greens Function Potential')
-plt.savefig('Greens_Pot.png')
-plt.imshow(g)
-
 x,v = take_leapfrog_step(x, v,dt,m,n, num_par, g)
-
-
-
 plt.show()
 plt.clf() 
 
