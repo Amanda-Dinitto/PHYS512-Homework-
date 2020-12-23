@@ -37,10 +37,6 @@ def take_leapfrog_step(x, v, dt, m, n, num_par, G):
         a = np.gradient(potential)
         for i in range(2):
            v[:,i] = vv[:,i] + ((a[i][x[:,0].astype(int),x[:,1].astype(int)])/(m[:])*(dt/2)) 
-            ##while x[i,0] or x[i,1] < n:
-            #if x[i,0] or x[i,1] > n: 
-                #x = np.delete(x, i, axis=0)
-                #x = np.vstack((x, np.array([0,0])))
         #plt.plot(x[:,0], x[:,1], '.')
         plt.imshow(potential)
         plt.title('N_body at Beginning of Iterations_k^3')
